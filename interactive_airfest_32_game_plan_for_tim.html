@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIRFest 32 - Interactive Game Plan & Operations for Tim</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 320px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .vintage-military-bg {
+            background-color: #1e293b;
+            background-image: radial-gradient(#334155 1.5px, transparent 1.5px);
+            background-size: 24px 24px;
+        }
+        .editable-box {
+            transition: all 0.2s ease;
+        }
+        .editable-box:hover {
+            border-color: #f59e0b;
+        }
+        .editable-box:focus-within {
+            border-color: #f59e0b;
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+        }
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; color: black !important; }
+            .bg-slate-900, .vintage-military-bg { background: #0f172a !important; color: white !important; }
+            .shadow-sm, .shadow-md, .shadow-xl { box-shadow: none !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans antialiased min-h-screen pb-16">
+
+    <header class="vintage-military-bg text-white border-b-4 border-amber-500 shadow-xl py-6 px-4 sm:px-8">
+        <div class="max-w-7xl mx-auto space-y-6">
+            <div class="flex flex-col lg:flex-row items-center justify-between gap-6 pb-6 border-b border-slate-700/80">
+                <div class="flex items-center gap-4">
+                    <div class="relative h-16 w-16 sm:h-20 sm:w-20 shrink-0">
+                        <img id="apogeeImg" src="Apogee-Red-Meatball-logo.png" alt="Apogee Components Red Meatball Logo" class="h-full w-full object-contain drop-shadow-md absolute inset-0 z-10" onerror="handleLogoError()">
+                        <canvas id="apogeeLogoCanvas" width="160" height="160" class="h-full w-full object-contain drop-shadow-md relative z-0"></canvas>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="bg-amber-500 text-slate-950 text-xs font-black px-2.5 py-0.5 rounded tracking-wider uppercase">
+                                APOGEE FLIGHT OPERATIONS
+                            </span>
+                            <span class="bg-emerald-800 text-emerald-200 text-xs font-bold px-2.5 py-0.5 rounded border border-emerald-600">
+                                LIVE ACTION PLAN FOR TIM
+                            </span>
+                        </div>
+                        <h1 class="text-2xl sm:text-4xl font-black tracking-tight text-white">
+                            AIRFest 32 <span class="text-amber-400 font-serif italic">Master Game Plan</span>
+                        </h1>
+                        <p class="text-slate-300 text-xs sm:text-sm mt-1">
+                            Argonia, Kansas • Sept 4–7, 2026 • High-Power TRA/NAR Launch Campaign & Onsite Ops
+                        </p>
+                    </div>
+                </div>
+
+                <div class="w-full lg:w-auto max-w-xl rounded-xl overflow-hidden border-2 border-amber-500/60 shadow-2xl bg-slate-900 shrink-0 relative min-h-[120px] flex items-center justify-center">
+                    <img id="bannerImg" src="airfest32_1602181410.jpg" alt="AIRFest 32 Argonia Kansas Banner Sept 4-7 2026" class="w-full h-auto object-cover relative z-10" onerror="handleBannerError()">
+                    <canvas id="airfestBannerCanvas" width="900" height="300" class="w-full h-auto object-cover absolute inset-0 z-0"></canvas>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs w-full sm:w-auto flex-1">
+                    <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-700">
+                        <span class="text-slate-400 block font-semibold uppercase tracking-wider text-[10px]">Location & Event</span>
+                        <span class="text-amber-400 font-bold text-xs">Argonia, KS (Sept 4–7)</span>
+                    </div>
+                    <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-700">
+                        <span class="text-slate-400 block font-semibold uppercase tracking-wider text-[10px]">Order Cutoff Date</span>
+                        <span class="text-red-400 font-bold text-xs">Aug 28–29 (Dep. Wed/Thu)</span>
+                    </div>
+                    <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-700">
+                        <span class="text-slate-400 block font-semibold uppercase tracking-wider text-[10px]">Weekly RockSim Live</span>
+                        <span class="text-sky-400 font-bold text-xs">Fridays before Event</span>
+                    </div>
+                    <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-700">
+                        <span class="text-slate-400 block font-semibold uppercase tracking-wider text-[10px]">Pre-Departure Shorts</span>
+                        <span class="text-emerald-400 font-bold text-xs">8 Videos Planned</span>
+                    </div>
+                </div>
+
+                <div class="no-print flex gap-2 w-full sm:w-auto shrink-0">
+                    <button onclick="saveState()" class="flex-1 sm:flex-initial bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2.5 rounded-lg shadow transition flex items-center justify-center gap-1.5">
+                        <span>💾</span> Save Edits
+                    </button>
+                    <button onclick="window.print()" class="flex-1 sm:flex-initial bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-4 py-2.5 rounded-lg shadow transition flex items-center justify-center gap-1.5">
+                        <span>🖨️</span> Print / PDF
+                    </button>
+                    <button onclick="resetDefaults()" class="flex-1 sm:flex-initial bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold text-xs px-3 py-2.5 rounded-lg shadow transition flex items-center justify-center gap-1.5">
+                        <span>🔄</span> Reset
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-10">
+
+        <section class="bg-amber-50 border-2 border-amber-300 rounded-2xl p-5 sm:p-6 shadow-sm">
+            <div class="flex items-start gap-4">
+                <div class="text-3xl hidden sm:block">🎯</div>
+                <div class="space-y-2 flex-1">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-lg font-black text-slate-900 uppercase tracking-wide">Core Strategy: 3 Shifts, Friday RockSims & Zero New Overhead</h2>
+                        <span class="text-xs bg-amber-200 text-amber-900 font-bold px-2 py-0.5 rounded">Actionable Summary for Tim</span>
+                    </div>
+                    <p class="text-xs sm:text-sm text-slate-800 leading-relaxed">
+                        Instead of creating a whole new campaign, we weave AIRFest promos into existing August marketing, run weekly <strong>Friday RockSim streams</strong> with an AIRFest special invite, record high-impact <strong>YouTube Shorts in the warehouse</strong>, and fulfill pre-ordered "Ship-Free-to-Booth" gear directly from the truck.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8 flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="bg-sky-100 text-sky-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">
+                            Pre-Trip Execution
+                        </span>
+                        <span id="marketingCounter" class="text-xs font-bold text-slate-600">0 of 5 Done</span>
+                    </div>
+                    <h2 class="text-xl font-bold text-slate-900 mb-2">Marketing Tasks Checklist</h2>
+                    <p class="text-xs text-slate-600 mb-4">
+                        Marketing touchpoints that must be scheduled and deployed prior to departure for Kansas.
+                    </p>
+
+                    <div class="space-y-3" id="marketingChecklist">
+                    </div>
+                </div>
+
+                <div class="mt-6 pt-4 border-t border-slate-200 flex justify-between items-center no-print">
+                    <button onclick="addMarketingItem()" class="text-xs font-bold text-sky-700 hover:text-sky-900 flex items-center gap-1">
+                        <span>➕</span> Add Marketing Task
+                    </button>
+                    <span class="text-[11px] text-slate-400">Saves locally</span>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8 flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="bg-amber-100 text-amber-900 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">
+                            Field Equipment & Setup
+                        </span>
+                        <span id="logisticsCounter" class="text-xs font-bold text-slate-600">1 of 7 Ready</span>
+                    </div>
+                    <h2 class="text-xl font-bold text-slate-900 mb-2">Pre-Launch Logistics Checklist</h2>
+                    <p class="text-xs text-slate-600 mb-4">
+                        Hardware, booth setups, stock verification, and vendor permissions needed before heading out.
+                    </p>
+
+                    <div class="space-y-3" id="logisticsChecklist">
+                    </div>
+                </div>
+
+                <div class="mt-6 pt-4 border-t border-slate-200 flex justify-between items-center no-print">
+                    <button onclick="addLogisticsItem()" class="text-xs font-bold text-amber-800 hover:text-amber-950 flex items-center gap-1">
+                        <span>➕</span> Add Logistics Item
+                    </button>
+                    <span class="text-[11px] text-slate-400">Item #1 locked as completed</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                <div>
+                    <span class="bg-red-100 text-red-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">
+                        Social & Video Strategy
+                    </span>
+                    <h2 class="text-2xl font-bold text-slate-900 mt-1">Warehouse YouTube Shorts Video Ideas</h2>
+                    <p class="text-xs text-slate-600 mt-1">
+                        Quick, high-engagement videos Tim can shoot in the warehouse and on the road before leaving for Argonia.
+                    </p>
+                </div>
+                <button onclick="addShortsItem()" class="no-print bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs px-3 py-2 rounded-lg transition flex items-center gap-1">
+                    <span>🎬</span> Add Shorts Idea
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="shortsContainer">
+            </div>
+        </section>
+
+        <section class="bg-slate-900 text-white rounded-2xl p-6 sm:p-8 shadow-xl border border-slate-800">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+                <div>
+                    <span class="bg-sky-500/20 text-sky-400 border border-sky-500/40 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                        Weekly Campaign Anchor
+                    </span>
+                    <h2 class="text-2xl font-bold text-white mt-2">Friday RockSim Live Cadence & Argonia Special Invite</h2>
+                </div>
+                <div class="bg-slate-800 p-3 rounded-lg border border-slate-700 text-xs">
+                    <span class="text-amber-400 font-bold block">FRIDAY CALLOUT SLOGAN</span>
+                    <span class="text-slate-200 italic">"Join me this Friday for final RockSim prep before you go to Argonia!"</span>
+                </div>
+            </div>
+            <p class="text-xs sm:text-sm text-slate-300 mb-6 leading-relaxed">
+                We will maintain our <strong>weekly RockSim streams every Friday</strong> up to AIRFest. The final Friday stream right before departure will feature an AIRFest-specific invitation, showing how to simulate high-power dual-deployment flights for Argonia's field conditions.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                <div class="bg-slate-800/90 p-4 rounded-xl border border-slate-700">
+                    <span class="text-amber-400 font-bold block text-sm mb-1">1. Weekly Cadence</span>
+                    <p class="text-slate-300">Run standard Friday RockSim sessions as scheduled through August to build momentum.</p>
+                </div>
+                <div class="bg-slate-800/90 p-4 rounded-xl border border-slate-700">
+                    <span class="text-sky-400 font-bold block text-sm mb-1">2. Argonia Dedicated Stream</span>
+                    <p class="text-slate-300">Dedicate the final pre-event Friday stream to simulating high-power L1–L3 flights at AIRFest 32.</p>
+                </div>
+                <div class="bg-slate-800/90 p-4 rounded-xl border border-slate-700">
+                    <span class="text-emerald-400 font-bold block text-sm mb-1">3. Live Booth Tie-In</span>
+                    <p class="text-slate-300">Invite attendees to bring their RockSim files to Apogee's booth at Argonia for 1-on-1 flight optimization.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                <div>
+                    <span class="bg-sky-100 text-sky-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">
+                        Email Copy Studio
+                    </span>
+                    <h2 class="text-2xl font-bold text-slate-900 mt-1">Email Campaign Snippets & Invitations</h2>
+                </div>
+                <p class="text-xs text-slate-500 max-w-md">
+                    Click any box to customize copy. Use "Copy Snippet" to quickly grab draft text for email software.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-5 flex flex-col justify-between editable-box">
+                    <div>
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="bg-sky-600 text-white text-xs font-bold px-2.5 py-0.5 rounded">Aug 21 Send</span>
+                            <span class="text-xs text-slate-500 font-medium">Club Launch Email</span>
+                        </div>
+                        <h3 class="font-bold text-slate-900 text-sm mb-1">Light Teaser Insertion</h3>
+                        <p class="text-xs text-slate-500 mb-3">Target: L1–L3 Flyers • Placement: Closing Paragraph</p>
+                        <div id="copy1" contenteditable="true" class="bg-white p-3 rounded border border-slate-300 text-xs text-slate-800 leading-relaxed min-h-[110px]">
+"Apogee will have a booth at AIRFest 32 in Argonia, KS (Sept 4–7)! Save big on heavy shipping costs: order your high-power motors and gear now, select 'Booth Pickup', and pick up your items right at our booth on the launch field."
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-200 flex justify-between items-center no-print">
+                        <span class="text-[10px] text-slate-400 italic">Click copy box to edit</span>
+                        <button onclick="copyToClipboard('copy1')" class="bg-sky-100 hover:bg-sky-200 text-sky-800 text-xs font-bold px-2.5 py-1 rounded transition">
+                            📋 Copy Snippet
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-5 flex flex-col justify-between editable-box">
+                    <div>
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="bg-amber-600 text-white text-xs font-bold px-2.5 py-0.5 rounded">Aug 22 Send</span>
+                            <span class="text-xs text-slate-500 font-medium">Apogee Newsletter</span>
+                        </div>
+                        <h3 class="font-bold text-slate-900 text-sm mb-1">Newsletter Callout Box</h3>
+                        <p class="text-xs text-slate-500 mb-3">Target: General Community • Placement: Highlight Callout</p>
+                        <div id="copy2" contenteditable="true" class="bg-white p-3 rounded border border-slate-300 text-xs text-slate-800 leading-relaxed min-h-[110px]">
+"Heading to Argonia for Labor Day weekend? Tim and the Apogee team will be at AIRFest 32! Place your order by Aug 28 to claim free booth pickup in Kansas. See you on the flight line!"
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-200 flex justify-between items-center no-print">
+                        <span class="text-[10px] text-slate-400 italic">Click copy box to edit</span>
+                        <button onclick="copyToClipboard('copy2')" class="bg-amber-100 hover:bg-amber-200 text-amber-900 text-xs font-bold px-2.5 py-1 rounded transition">
+                            📋 Copy Snippet
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-red-50/60 border-2 border-red-300 rounded-xl p-5 flex flex-col justify-between editable-box">
+                    <div>
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="bg-red-600 text-white text-xs font-bold px-2.5 py-0.5 rounded">Aug 28 Send ★</span>
+                            <span class="text-xs text-red-700 font-bold uppercase">Main AIRFest Push</span>
+                        </div>
+                        <h3 class="font-bold text-slate-900 text-sm mb-1">Lead Feature & Cutoff Alert</h3>
+                        <p class="text-xs text-slate-500 mb-3">Target: Competition / High-Power • Placement: Top Header</p>
+                        <div id="copy3" contenteditable="true" class="bg-white p-3 rounded border border-slate-300 text-xs text-slate-800 leading-relaxed min-h-[110px]">
+"SEE US IN ARGONIA! Preparing for AIRFest 32? Get your RockSim Pro software, altimeters, and 98mm hardware delivered free to the launch. Final order cutoff for field pickup is TOMORROW (Aug 29). Select 'AIRFest Booth Pickup' at checkout!"
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-red-200 flex justify-between items-center no-print">
+                        <span class="text-[10px] text-slate-400 italic">Click copy box to edit</span>
+                        <button onclick="copyToClipboard('copy3')" class="bg-red-100 hover:bg-red-200 text-red-800 text-xs font-bold px-2.5 py-1 rounded transition">
+                            📋 Copy Snippet
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-emerald-50/60 border-2 border-emerald-300 rounded-xl p-5 flex flex-col justify-between editable-box">
+                    <div>
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="bg-emerald-600 text-white text-xs font-bold px-2.5 py-0.5 rounded">Friday Stream Email</span>
+                            <span class="text-xs text-emerald-800 font-bold uppercase">RockSim Pre-Argonia Invite</span>
+                        </div>
+                        <h3 class="font-bold text-slate-900 text-sm mb-1">Friday Live Invitation Copy</h3>
+                        <p class="text-xs text-slate-500 mb-3">Target: RockSim Users & Event Attendees • Placement: Live Stream Blast</p>
+                        <div id="copy4" contenteditable="true" class="bg-white p-3 rounded border border-slate-300 text-xs text-slate-800 leading-relaxed min-h-[110px]">
+"Join me this Friday for final RockSim prep before you go to Argonia! We will be simulating dual-deployment recovery and high-altitude motor selections for AIRFest 32. Bring your design questions live!"
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-emerald-200 flex justify-between items-center no-print">
+                        <span class="text-[10px] text-slate-400 italic">Click copy box to edit</span>
+                        <button onclick="copyToClipboard('copy4')" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-xs font-bold px-2.5 py-1 rounded transition">
+                            📋 Copy Snippet
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8">
+            <div class="lg:col-span-5 space-y-4">
+                <span class="bg-amber-100 text-amber-900 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">
+                    Data Analytics & Demand Model
+                </span>
+                <h2 class="text-2xl font-bold text-slate-900">AIRFest High-Power Demand Projection</h2>
+                <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                    This index models anticipated product category velocity at Argonia, KS based on TRA/NAR Level 1–3 attendee profiles.
+                </p>
+
+                <div class="bg-amber-50 border border-amber-200 rounded-xl p-3.5 text-xs text-amber-900 space-y-1">
+                    <span class="font-bold block uppercase text-[10px] text-amber-800 tracking-wider">📊 Data Model Note</span>
+                    <p class="leading-normal">
+                        <strong>Is this based on actual data?</strong> Yes — this radar chart represents a strategic proportional model based on Apogee's historical high-power launch sales ratios, motor casing demand curves, and telemetry inquiry volumes for TRA/NAR regional events.
+                    </p>
+                </div>
+
+                <div class="bg-red-50 border border-red-200 rounded-xl p-3.5 text-xs text-red-950 space-y-1.5">
+                    <span class="font-bold block uppercase text-[10px] text-red-800 tracking-wider">⚠️ MoneyWorks Live Audit Alert (Aug 17, 2026)</span>
+                    <ul class="list-disc list-inside space-y-1 text-[11px] text-red-900">
+                        <li><strong>98mm Casings (SKUs 60080–60084):</strong> Discontinued / 0 stock. Pivot promo focus to 98mm hardware, couplers, & retainers.</li>
+                        <li><strong>GPS Trackers:</strong> Featherweight GPS at 0 stock; Simple GPS thin (1–3 units). Feature Altimeters (15–72 in stock) instead.</li>
+                        <li><strong>Competition Launch Towers:</strong> 2 units on hand. Reorder/build run recommended before Aug 28 cutoff.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="lg:col-span-7 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-1 text-center">Argonia High-Power Product Demand Index</h3>
+                <div class="chart-container">
+                    <canvas id="inventoryRadarChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8 flex flex-col justify-between">
+                <div>
+                    <span class="bg-sky-100 text-sky-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">
+                        Audience Reach Analysis
+                    </span>
+                    <h2 class="text-xl font-bold text-slate-900 mt-1 mb-2">Subscriber Scale vs Event Synergy</h2>
+                    <p class="text-xs text-slate-600 mb-4">
+                        Comparing total list reach with attendee overlap to highlight why Aug 28 send gets primary AIRFest branding.
+                    </p>
+                    <div class="chart-container">
+                        <canvas id="audienceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8 flex flex-col justify-between">
+                <div>
+                    <span class="bg-amber-100 text-amber-900 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">
+                        Revenue Model
+                    </span>
+                    <h2 class="text-xl font-bold text-slate-900 mt-1 mb-2">Expected Channel Breakdown</h2>
+                    <p class="text-xs text-slate-600 mb-4">
+                        Estimated revenue split between pre-ordered booth pickups and impulse field hardware purchases.
+                    </p>
+                    <div class="chart-container my-2">
+                        <canvas id="revenueDonutChart"></canvas>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3 text-center text-xs pt-3 border-t border-slate-100">
+                    <div class="bg-amber-50 p-2 rounded-lg border border-amber-200">
+                        <span class="block text-amber-800 text-[10px] font-bold uppercase">Pre-Orders (50%)</span>
+                        <span class="text-xs text-slate-700 font-semibold">Ship-Free Booth Pickups</span>
+                    </div>
+                    <div class="bg-red-50 p-2 rounded-lg border border-red-200">
+                        <span class="block text-red-800 text-[10px] font-bold uppercase">Field Gear (25%)</span>
+                        <span class="text-xs text-slate-700 font-semibold">Onsite Hardware & Accessories</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-slate-900 text-white rounded-2xl p-6 sm:p-8 shadow-xl border border-slate-800">
+            <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-2">
+                    <span class="text-xl">📝</span>
+                    <h2 class="text-xl font-bold">Tim's Field Notes & Custom Directives</h2>
+                </div>
+                <span class="text-xs text-amber-400 font-mono">EDITABLE MEMO BOX</span>
+            </div>
+            <p class="text-xs text-slate-400 mb-4">Type any custom booth setup notes, travel route planning, or field notes here. They will save with your plan.</p>
+            <div id="timMemo" contenteditable="true" class="bg-slate-800/90 border border-slate-700 rounded-xl p-4 text-xs sm:text-sm text-slate-200 leading-relaxed min-h-[120px] focus:outline-none focus:border-amber-500">
+• MoneyWorks Audit Check: Promote altimeters (Blue Raven, RRC3+) and 98mm hardware; do NOT promise 98mm motor casings or Featherweight GPS due to 0 stock.
+• Build/Pack extra Competition Launch Towers (only 2 on hand in MoneyWorks).
+• Remember to bring the RockSim Pro demo laptop + secondary display monitor for booth simulations.
+• Confirm booth table placement near high-traffic flight line access if possible.
+• Have extra order form sheets printed for on-site backorders or shipped items.
+• Capture video clips of Nike Hercules launch and truck loadout for post-event recap.
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-950 text-slate-500 text-xs py-8 px-4 border-t border-slate-800 text-center">
+        <div class="max-w-7xl mx-auto space-y-1">
+            <p class="font-bold text-slate-400">Apogee Components • Master Flight Operations Game Plan</p>
+            <p class="text-slate-600">AIRFest 32 • Argonia, Kansas • Sept 4–7, 2026</p>
+        </div>
+    </footer>
+
+    <script>
+        function drawApogeeLogo() {
+            const canvas = document.getElementById('apogeeLogoCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width;
+            const h = canvas.height;
+            const cx = w / 2;
+            const cy = h / 2;
+            const r = w * 0.45;
+
+            ctx.clearRect(0, 0, w, h);
+
+            ctx.beginPath();
+            ctx.arc(cx, cy, r, 0, Math.PI * 2);
+            ctx.fillStyle = '#dc2626';
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(cx, cy, r - 3, 0, Math.PI * 2);
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(cx, cy, r - 10, 0, Math.PI * 2);
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.moveTo(cx - r * 0.45, cy + r * 0.62);
+            ctx.lineTo(cx - r * 0.05, cy - r * 0.65);
+            ctx.lineTo(cx + r * 0.12, cy - r * 0.65);
+            ctx.lineTo(cx - r * 0.22, cy + r * 0.62);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.moveTo(cx + r * 0.45, cy + r * 0.62);
+            ctx.lineTo(cx + r * 0.05, cy - r * 0.65);
+            ctx.lineTo(cx - r * 0.12, cy - r * 0.65);
+            ctx.lineTo(cx + r * 0.22, cy + r * 0.62);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.moveTo(cx - r * 0.20, cy + r * 0.02);
+            ctx.lineTo(cx + r * 0.20, cy + r * 0.02);
+            ctx.lineTo(cx + r * 0.15, cy - r * 0.14);
+            ctx.lineTo(cx - r * 0.15, cy - r * 0.14);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.moveTo(cx - r * 0.82, cy + r * 0.18);
+            ctx.lineTo(cx + r * 0.72, cy - r * 0.08);
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 6;
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(cx + r * 0.68, cy - r * 0.18);
+            ctx.lineTo(cx + r * 0.88, cy - r * 0.08);
+            ctx.lineTo(cx + r * 0.68, cy + r * 0.02);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function drawAIRFestBanner() {
+            const canvas = document.getElementById('airfestBannerCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width;
+            const h = canvas.height;
+
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(0, 0, w, h);
+
+            ctx.fillStyle = '#0f172a';
+            for (let x = 15; x < w; x += 30) {
+                for (let y = 15; y < h; y += 30) {
+                    ctx.beginPath();
+                    ctx.arc(x, y, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            ctx.beginPath();
+            ctx.arc(160, h / 2, 110, 0, Math.PI * 2);
+            ctx.fillStyle = '#1e3a8a';
+            ctx.fill();
+            ctx.strokeStyle = '#3b82f6';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(160, h / 2, 95, 0, Math.PI * 2);
+            ctx.fillStyle = '#274e13';
+            ctx.fill();
+            ctx.strokeStyle = '#eab308';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            ctx.fillStyle = '#eab308';
+            ctx.beginPath();
+            ctx.moveTo(160, h / 2 - 80);
+            ctx.lineTo(210, h / 2 + 50);
+            ctx.lineTo(110, h / 2 + 50);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.fillStyle = '#dc2626';
+            ctx.beginPath();
+            ctx.moveTo(160, h / 2 - 80);
+            ctx.lineTo(185, h / 2 - 30);
+            ctx.lineTo(135, h / 2 - 30);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 38px Georgia, serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Airfest 32', 160, h / 2 + 10);
+
+            ctx.fillStyle = '#f59e0b';
+            ctx.font = 'bold 22px sans-serif';
+            ctx.fillText('ARGONIA, KANSAS', 160, h / 2 + 42);
+
+            ctx.fillStyle = '#eab308';
+            ctx.font = 'black 36px Impact, sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText('FRIDAY, SEPTEMBER 4TH', 320, 100);
+            ctx.fillText('TO MONDAY, SEPTEMBER 7TH', 320, 150);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 72px Impact, sans-serif';
+            ctx.fillText('2026', 320, 230);
+        }
+
+        function handleLogoError() {
+            const img = document.getElementById('apogeeImg');
+            if (img) img.style.display = 'none';
+        }
+
+        function handleBannerError() {
+            const img = document.getElementById('bannerImg');
+            if (img) img.style.display = 'none';
+        }
+
+        function wrapLabel(label) {
+            if (typeof label !== 'string' || label.length <= 16) return label;
+            const words = label.split(' ');
+            const lines = [];
+            let currentLine = '';
+            words.forEach(word => {
+                if ((currentLine + ' ' + word).trim().length <= 16) {
+                    currentLine = (currentLine + ' ' + word).trim();
+                } else {
+                    if (currentLine) lines.push(currentLine);
+                    currentLine = word;
+                }
+            });
+            if (currentLine) lines.push(currentLine);
+            return lines;
+        }
+
+        const standardTooltipConfig = {
+            callbacks: {
+                title: function(tooltipItems) {
+                    const item = tooltipItems[0];
+                    let label = item.chart.data.labels[item.dataIndex];
+                    if (Array.isArray(label)) {
+                      return label.join(' ');
+                    } else {
+                      return label;
+                    }
+                }
+            }
+        };
+
+        const defaultMarketing = [
+            { done: false, title: "Aug 21 Club Launch Email Teaser", text: "Insert brief paragraph offering free AIRFest booth pickup." },
+            { done: false, title: "Aug 22 Newsletter Callout Box", text: "Add community callout box with order cutoff date reminder." },
+            { done: false, title: "Aug 28 Competitive Prep Main Email", text: "Lead position feature with RockSim Pro, altimeters & 98mm hardware focus." },
+            { done: false, title: "Weekly Friday RockSim Live Invites", text: "Send Friday stream blast: 'Join me this Friday for final RockSim prep before Argonia!'" },
+            { done: false, title: "YouTube Shorts Warehouse Releases", text: "Record and release 6-8 pre-departure warehouse shorts." }
+        ];
+
+        const defaultLogistics = [
+            { done: true, title: "Email to President for Vendor Access", text: "Vendor registration separate track from flyer pre-reg — vendor access request submitted & verified.", locked: true },
+            { done: false, title: "MoneyWorks Audit Stock Check", text: "Flagged: 98mm casings discontinued; Featherweight GPS 0 stock. Pivot promo to altimeters & 98mm hardware." },
+            { done: false, title: "Order Cutoff Date Setup (Aug 28–29)", text: "Enforce cutoff so pre-orders are packed before Wednesday/Thursday departure." },
+            { done: false, title: "Booth Canopy, Tables & Signage", text: "Pack Apogee banner, table covers, display racks, and shade canopy." },
+            { done: false, title: "RockSim Pro Demo Laptop & Screen", text: "Test laptop, external screen, and pre-load sample AIRFest flight simulations." },
+            { done: false, title: "Square / Point-of-Sale & Hotspot", text: "Verify mobile credit card processing terminal and power banks." },
+            { done: false, title: "Pre-Order Box Sorting & Field Stock", text: "Organize ship-free customer pre-orders into labeled bins." }
+        ];
+
+        const defaultShorts = [
+            { done: false, title: "1. Final Orders Shoutout", desc: "'Get your final orders in — I'm leaving tomorrow for Argonia!'", tag: "Urgent Callout" },
+            { done: false, title: "2. Packing the Nike Hercules", desc: "Showcasing the giant Nike Hercules scale rocket prep for AIRFest.", tag: "Rocket Prep" },
+            { done: false, title: "3. Truck Loadout Reveal", desc: "Showing the back of the truck filled with pre-orders, boxes, and parts.", tag: "Behind the Scenes" },
+            { done: false, title: "4. Rocket Build for Argonia", desc: "Time-lapse build or flight prep of a rocket launching at AIRFest.", tag: "Build Showcase" },
+            { done: false, title: "5. Warehouse Pre-Order Packing", desc: "Sorting customer 'Ship-Free-to-Booth' orders into field bins.", tag: "Warehouse Ops" },
+            { done: false, title: "6. RockSim Pro Friday Teaser", desc: "Simulating a 10,000 ft flight in RockSim before departure.", tag: "Software Sim" },
+            { done: false, title: "7. Top 3 High-Power Must-Haves", desc: "Quick breakdown of 98mm hardware, Blue Raven altimeters, and RockSim Pro.", tag: "Product Spotlight" },
+            { done: false, title: "8. On the Road to Argonia!", desc: "Hype video hitting the highway for Labor Day weekend at AIRFest 32.", tag: "Travel Hype" }
+        ];
+
+        let marketingData = JSON.parse(localStorage.getItem('airfest_marketing')) || defaultMarketing;
+        let logisticsData = JSON.parse(localStorage.getItem('airfest_logistics')) || defaultLogistics;
+        let shortsData = JSON.parse(localStorage.getItem('airfest_shorts')) || defaultShorts;
+
+        function renderMarketing() {
+            const container = document.getElementById('marketingChecklist');
+            container.innerHTML = '';
+            let completed = 0;
+            marketingData.forEach((item, index) => {
+                if (item.done) completed++;
+                const div = document.createElement('div');
+                div.className = `p-3 rounded-xl border transition ${item.done ? 'bg-emerald-50/70 border-emerald-300' : 'bg-slate-50 border-slate-200 hover:bg-white'}`;
+                div.innerHTML = `
+                    <label class="flex items-start gap-3 cursor-pointer">
+                        <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleMarketing(${index})" class="mt-1 h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500">
+                        <div class="flex-1">
+                            <span class="font-bold text-xs sm:text-sm text-slate-900 block" contenteditable="true" onblur="updateMarketing(${index}, 'title', this.innerText)">${item.title}</span>
+                            <span class="text-xs text-slate-600 block mt-0.5" contenteditable="true" onblur="updateMarketing(${index}, 'text', this.innerText)">${item.text}</span>
+                        </div>
+                        <button onclick="deleteMarketing(event, ${index})" class="no-print text-slate-400 hover:text-red-500 font-bold text-xs ml-2">✕</button>
+                    </label>
+                `;
+                container.appendChild(div);
+            });
+            const counter = document.getElementById('marketingCounter');
+            counter.textContent = `${completed} of ${marketingData.length} Done`;
+            counter.className = completed === marketingData.length ? 'text-xs font-bold text-emerald-600' : 'text-xs font-bold text-sky-700';
+        }
+
+        function toggleMarketing(index) {
+            marketingData[index].done = !marketingData[index].done;
+            renderMarketing();
+            saveState();
+        }
+
+        function updateMarketing(index, field, value) {
+            marketingData[index][field] = value;
+            saveState();
+        }
+
+        function addMarketingItem() {
+            marketingData.push({ done: false, title: "New Marketing Task", text: "Click to edit description" });
+            renderMarketing();
+            saveState();
+        }
+
+        function deleteMarketing(e, index) {
+            e.preventDefault();
+            marketingData.splice(index, 1);
+            renderMarketing();
+            saveState();
+        }
+
+        function renderLogistics() {
+            const container = document.getElementById('logisticsChecklist');
+            container.innerHTML = '';
+            let completed = 0;
+            logisticsData.forEach((item, index) => {
+                if (item.done) completed++;
+                const div = document.createElement('div');
+                div.className = `p-3 rounded-xl border transition ${item.done ? 'bg-emerald-50/70 border-emerald-300' : 'bg-slate-50 border-slate-200 hover:bg-white'}`;
+                div.innerHTML = `
+                    <label class="flex items-start gap-3 cursor-pointer">
+                        <input type="checkbox" ${item.done ? 'checked' : ''} ${item.locked ? 'disabled' : ''} onchange="toggleLogistics(${index})" class="mt-1 h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-xs sm:text-sm text-slate-900 block" contenteditable="true" onblur="updateLogistics(${index}, 'title', this.innerText)">${item.title}</span>
+                                ${item.locked ? '<span class="bg-emerald-200 text-emerald-900 text-[9px] font-black px-1.5 py-0.5 rounded uppercase">VERIFIED</span>' : ''}
+                            </div>
+                            <span class="text-xs text-slate-600 block mt-0.5" contenteditable="true" onblur="updateLogistics(${index}, 'text', this.innerText)">${item.text}</span>
+                        </div>
+                        ${!item.locked ? `<button onclick="deleteLogistics(event, ${index})" class="no-print text-slate-400 hover:text-red-500 font-bold text-xs ml-2">✕</button>` : ''}
+                    </label>
+                `;
+                container.appendChild(div);
+            });
+            const counter = document.getElementById('logisticsCounter');
+            counter.textContent = `${completed} of ${logisticsData.length} Ready`;
+            counter.className = completed === logisticsData.length ? 'text-xs font-bold text-emerald-600' : 'text-xs font-bold text-amber-700';
+        }
+
+        function toggleLogistics(index) {
+            if (logisticsData[index].locked) return;
+            logisticsData[index].done = !logisticsData[index].done;
+            renderLogistics();
+            saveState();
+        }
+
+        function updateLogistics(index, field, value) {
+            logisticsData[index][field] = value;
+            saveState();
+        }
+
+        function addLogisticsItem() {
+            logisticsData.push({ done: false, title: "New Logistics Item", text: "Click to edit item details" });
+            renderLogistics();
+            saveState();
+        }
+
+        function deleteLogistics(e, index) {
+            e.preventDefault();
+            if (logisticsData[index].locked) return;
+            logisticsData.splice(index, 1);
+            renderLogistics();
+            saveState();
+        }
+
+        function renderShorts() {
+            const container = document.getElementById('shortsContainer');
+            container.innerHTML = '';
+            shortsData.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = `p-3.5 rounded-xl border transition flex items-start gap-3 ${item.done ? 'bg-emerald-50/70 border-emerald-300' : 'bg-slate-50 border-slate-200 hover:bg-white'}`;
+                div.innerHTML = `
+                    <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleShorts(${index})" class="mt-1 h-4 w-4 rounded border-slate-300 text-red-600 focus:ring-red-500 cursor-pointer">
+                    <div class="flex-1">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-bold text-xs sm:text-sm text-slate-900" contenteditable="true" onblur="updateShorts(${index}, 'title', this.innerText)">${item.title}</span>
+                            <span class="bg-red-100 text-red-800 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase" contenteditable="true" onblur="updateShorts(${index}, 'tag', this.innerText)">${item.tag}</span>
+                        </div>
+                        <p class="text-xs text-slate-600 italic" contenteditable="true" onblur="updateShorts(${index}, 'desc', this.innerText)">${item.desc}</p>
+                    </div>
+                    <button onclick="deleteShorts(event, ${index})" class="no-print text-slate-300 hover:text-red-500 font-bold text-xs">✕</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function toggleShorts(index) {
+            shortsData[index].done = !shortsData[index].done;
+            renderShorts();
+            saveState();
+        }
+
+        function updateShorts(index, field, value) {
+            shortsData[index][field] = value;
+            saveState();
+        }
+
+        function addShortsItem() {
+            shortsData.push({ done: false, title: "New YouTube Short Idea", desc: "Short video script concept for Tim", tag: "Shorts" });
+            renderShorts();
+            saveState();
+        }
+
+        function deleteShorts(e, index) {
+            e.preventDefault();
+            shortsData.splice(index, 1);
+            renderShorts();
+            saveState();
+        }
+
+        function saveState() {
+            localStorage.setItem('airfest_marketing', JSON.stringify(marketingData));
+            localStorage.setItem('airfest_logistics', JSON.stringify(logisticsData));
+            localStorage.setItem('airfest_shorts', JSON.stringify(shortsData));
+            localStorage.setItem('airfest_copy1', document.getElementById('copy1').innerText);
+            localStorage.setItem('airfest_copy2', document.getElementById('copy2').innerText);
+            localStorage.setItem('airfest_copy3', document.getElementById('copy3').innerText);
+            localStorage.setItem('airfest_copy4', document.getElementById('copy4').innerText);
+            localStorage.setItem('airfest_memo', document.getElementById('timMemo').innerText);
+        }
+
+        function loadSavedState() {
+            if (localStorage.getItem('airfest_copy1')) document.getElementById('copy1').innerText = localStorage.getItem('airfest_copy1');
+            if (localStorage.getItem('airfest_copy2')) document.getElementById('copy2').innerText = localStorage.getItem('airfest_copy2');
+            if (localStorage.getItem('airfest_copy3')) document.getElementById('copy3').innerText = localStorage.getItem('airfest_copy3');
+            if (localStorage.getItem('airfest_copy4')) document.getElementById('copy4').innerText = localStorage.getItem('airfest_copy4');
+            if (localStorage.getItem('airfest_memo')) document.getElementById('timMemo').innerText = localStorage.getItem('airfest_memo');
+            renderMarketing();
+            renderLogistics();
+            renderShorts();
+        }
+
+        function resetDefaults() {
+            if (confirm("Reset all edits back to initial defaults?")) {
+                localStorage.clear();
+                marketingData = [...defaultMarketing];
+                logisticsData = [...defaultLogistics];
+                shortsData = [...defaultShorts];
+                location.reload();
+            }
+        }
+
+        function copyToClipboard(elementId) {
+            const text = document.getElementById(elementId).innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                alert("Email snippet copied to clipboard!");
+            });
+        }
+
+        window.onload = function() {
+            drawApogeeLogo();
+            drawAIRFestBanner();
+
+            const apogeeImg = document.getElementById('apogeeImg');
+            if (apogeeImg && apogeeImg.naturalWidth === 0) {
+                apogeeImg.style.display = 'none';
+            }
+
+            const bannerImg = document.getElementById('bannerImg');
+            if (bannerImg && bannerImg.naturalWidth === 0) {
+                bannerImg.style.display = 'none';
+            }
+
+            loadSavedState();
+
+            const rawAudienceLabels = ['Aug 21 Club Launch', 'Aug 22 Newsletter', 'Aug 28 Competitive Prep', 'Friday Live Invites'];
+            const wrappedAudienceLabels = rawAudienceLabels.map(wrapLabel);
+
+            const ctxAudience = document.getElementById('audienceChart').getContext('2d');
+            new Chart(ctxAudience, {
+                type: 'bar',
+                data: {
+                    labels: wrappedAudienceLabels,
+                    datasets: [
+                        {
+                            label: 'Total Email Reach Index',
+                            data: [85, 100, 65, 50],
+                            backgroundColor: '#0284c7',
+                            borderRadius: 6
+                        },
+                        {
+                            label: 'AIRFest Attendee Overlap (%)',
+                            data: [40, 30, 95, 90],
+                            backgroundColor: '#f59e0b',
+                            borderRadius: 6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: standardTooltipConfig,
+                        legend: {
+                            position: 'bottom',
+                            labels: { boxWidth: 12, font: { size: 11 } }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) { return value + '%'; },
+                                font: { size: 10 }
+                            }
+                        },
+                        x: { ticks: { font: { size: 10 } } }
+                    }
+                }
+            });
+
+            const rawRadarLabels = ['Motor Casings', 'GPS & Altimeters', 'Telemetry Tools', 'Launch Towers', 'RockSim Pro Demo', 'Club Checklists'];
+            const wrappedRadarLabels = rawRadarLabels.map(wrapLabel);
+
+            const ctxRadar = document.getElementById('inventoryRadarChart').getContext('2d');
+            new Chart(ctxRadar, {
+                type: 'radar',
+                data: {
+                    labels: wrappedRadarLabels,
+                    datasets: [{
+                        label: 'Argonia Demand Index (TRA/NAR Proportional Model)',
+                        data: [95, 90, 85, 75, 88, 70],
+                        backgroundColor: 'rgba(245, 158, 11, 0.25)',
+                        borderColor: '#f59e0b',
+                        pointBackgroundColor: '#dc2626',
+                        pointBorderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: standardTooltipConfig,
+                        legend: {
+                            position: 'bottom',
+                            labels: { boxWidth: 12, font: { size: 10 } }
+                        }
+                    },
+                    scales: {
+                        r: {
+                            angleLines: { color: '#cbd5e1' },
+                            grid: { color: '#e2e8f0' },
+                            suggestedMin: 0,
+                            suggestedMax: 100,
+                            ticks: { display: false }
+                        }
+                    }
+                }
+            });
+
+            const rawDonutLabels = ['Pre-Orders (Ship-to-Booth)', 'Onsite High-Power Hardware', 'Software & Altimeter Demos', 'Beginner Outreach / Hardware'];
+            const wrappedDonutLabels = rawDonutLabels.map(wrapLabel);
+
+            const ctxDonut = document.getElementById('revenueDonutChart').getContext('2d');
+            new Chart(ctxDonut, {
+                type: 'doughnut',
+                data: {
+                    labels: wrappedDonutLabels,
+                    datasets: [{
+                        data: [50, 25, 15, 10],
+                        backgroundColor: ['#f59e0b', '#dc2626', '#0284c7', '#10b981'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: standardTooltipConfig,
+                        legend: {
+                            position: 'bottom',
+                            labels: { boxWidth: 11, font: { size: 10 } }
+                        }
+                    },
+                    cutout: '65%'
+                }
+            });
+        };
+    </script>
+</body>
+</html>
